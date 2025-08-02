@@ -1,0 +1,93 @@
+import json
+
+class Student:
+    def __init__(self, roll_number, name, marks):
+        self.roll_number = roll_number
+        self.name = name
+        self.marks = marks
+
+    def calculate_grade(self):
+        average = sum(self.marks) / len(self.marks)
+        if average >= 90:
+            return 'A'
+        elif average >= 75:
+            return 'B'
+        elif average >= 50:
+            return 'C'
+        else:
+            return 'D'
+
+    def to_dict(self):
+        return {
+            'roll_number': self.roll_number,
+            'name': self.name,
+            'marks': self.marks,
+            'grade': self.calculate_grade()
+        }
+
+class ReportCard:
+    def __init__(self, filename='students.json'):
+        self.filename = filename
+        self.students = self.load_students()
+
+    def load_students(self):
+        try:
+            with open(self.filename, 'r') as file:
+                return json.load(file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
+
+    def save_students(self):
+        with open(self.filename, 'w') as file:
+            json.dump(self.students, file, indent=4)
+
+    def add_student(self, roll_number, name, marks):
+        if roll_number in self.students:
+            print("Error: Student with this roll number already exists.")
+            return
+        if not isinstance(marks, list) or len(marks) == 0:
+            print("Error: Marks should be a non-empty list.")
+            return
+        self.students[roll_number] = Student(roll_number, name, marks).to_dict()
+        self.save_students()
+        print(f"Student {name} added successfully.")
+
+    def fetch_student(self, roll_number):
+        student = self.students.get(roll_number)
+        if student:
+            print(f"Roll Number: {student['roll_number']}")
+            print(f"Name: {student['name']}")
+            print(f"Marks: {student['marks']}")
+            print(f"Grade: {student['grade']}")
+        else:
+            print("Error: Student not found.")
+
+def main():
+    report_card = ReportCard()
+
+    while True:
+        print("\n1. Add Student")
+        print("2. Fetch Student")
+        print("3. Exit")
+        choice = input("Enter your choice: ")
+
+        if choice == '1':
+            roll_number = input("Enter Roll Number: ")
+            name = input("Enter Name: ")
+            try:
+                marks = list(map(int, input("Enter Marks (comma separated): ").split(',')))
+                report_card.add_student(roll_number, name, marks)
+            except ValueError:
+                print("Error: Invalid marks entered. Please enter integers only.")
+        elif choice == '2':
+            roll_number = input("Enter Roll Number to fetch: ")
+            report_card.fetch_student(roll_number)
+        elif choice == '3':
+            print("Exiting the program.")
+            break
+        else:
+            print("Error: Invalid choice. Please try again.")
+
+if __name__ == "__main__":
+    main()
+
